@@ -46,7 +46,9 @@ class AsyncHttpResponse:
         return self
 
     async def __anext__(self) -> bytes:
-        if self.content_length is None:
+        if self.headers.get('transfer-encoding', '').lower() == 'chunked':
+            raise AsyncHttpException('Chunked transfer encoding not supported')
+        elif self.content_length is None:
             raise AsyncHttpException('No content length header found')
         if self.received_bytes == self.content_length:
             await self.close()
